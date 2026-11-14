@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Auto Delete Todo List
 
-## Getting Started
+A small page for the 7 Solutions frontend challenge.
 
-First, run the development server:
+## What it does
+
+- The left column shows a list of buttons. Each one is a fruit or a vegetable.
+- Click a button to move it to its own column: Fruit or Vegetable.
+- A moved button stays in its column for 5 seconds, then goes back to the bottom of the left list.
+- Click a button in the Fruit or Vegetable column to send it back to the bottom of the left list right away.
+
+## How to run
+
+You need Node.js 20 or newer.
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open http://localhost:3000 in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+  page.tsx                      The page. Passes the item data to the list.
+  components/
+    auto-delete-list.tsx        Shows the main list and the two columns.
+    item-button.tsx             One clickable button.
+  hooks/
+    use-auto-return-list.ts     All the logic: moving items and the 5 second timers.
+  data/
+    items.ts                    The list of fruits and vegetables.
+  types/
+    item.ts                     The Item type and the list of item types.
+```
 
-## Learn More
+## How it works
 
-To learn more about Next.js, take a look at the following resources:
+The logic lives in one hook, `useAutoReturnList`. The components only show data
+and call the hook's functions when a button is clicked.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The hook keeps two lists in state:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `mainList`: the buttons in the left column.
+- `movedItems`: the buttons that were moved out. Each column shows only the
+  items of its own type from this list.
 
-## Deploy on Vercel
+When a button is moved out, the hook starts a 5 second timer for it. The timers
+are kept in a `Map` inside a `useRef`, with the item name as the key. A ref is
+used because the timers do not need to be shown on the screen, so changing
+them should not cause a new render.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+When a button goes back (by click or by timer), its timer is stopped and
+removed from the `Map`. This matters: if an item is clicked back early and
+then moved out again, the old timer must not pull it back too soon.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+When the page is closed, all timers that are still running are stopped.
+
+## Tech
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
